@@ -111,13 +111,13 @@ class WebpayWebService extends TransbankService
      * @return WebpayStandard\wsInitTransactionOutput
      * @throws EmptyTransactionException
      */
-    public function initTransaction($returnURL, $finalURL, $sessionId = null, $transactionType = self::TIENDA_NORMAL, $buyOrder = null, $commerceCode = null)
+    public function initTransaction($returnURL, $finalURL, $sessionId = null, $transactionType = self::TIENDA_NORMAL, $buyOrder = null, $commerceCode = null, $commerceId = null)
     {
         $this->validateTransactionDetails();
 
         $input = new wsInitTransactionInput();
 
-        $this->validateParametersBasedOnTransactionType($transactionType, $buyOrder, $commerceCode, $input);
+        $this->validateParametersBasedOnTransactionType($transactionType, $buyOrder, $commerceCode, $input, $commerceId);
 
         $input->sessionId = $sessionId;
         $input->returnURL = $returnURL;
@@ -176,18 +176,18 @@ class WebpayWebService extends TransbankService
      *
      * @throws \InvalidArgumentException
      */
-    public function validateParametersBasedOnTransactionType($transactionType, $buyOrder, $commerceCode, $input)
+    public function validateParametersBasedOnTransactionType($transactionType, $buyOrder, $commerceCode, $input, $commerceId = null)
     {
         if ($transactionType == self::TIENDA_MALL) {
-            if (!$commerceCode) {
-                $commerceCode = SecurityHelper::getCommonName($this->service->getCertificationBag()->getClientCertificate());
+            if (!$commerceId) {
+                $commerceId = SecurityHelper::getCommonName($this->service->getCertificationBag()->getClientCertificate());
             }
             if (!$buyOrder) {
                 throw new \InvalidArgumentException('Mall transactions needs a buyOrder defined for the transaction itself and a buyOrder per transactionDetail. Please add a buyOrder on initTransaction()');
             }
 
             $input->buyOrder = $buyOrder;
-            $input->commerceId = $commerceCode;
+            $input->commerceId = $commerceId;
         }
 
         if ($transactionType == self::PATPASS) {
